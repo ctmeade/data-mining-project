@@ -1,0 +1,40 @@
+---
+title: "Project"
+author: "Chris Meade"
+date: "12/7/2016"
+output: pdf_document
+---
+
+### Abstract
+
+Diabetes occurs more often in the Pima Indian tribe of southern Arizona than any other population of people in the world. By selecting the optimal parameters for three machine learning algorithms -- Random Forest decision trees, a Support Vector Machine (SVM) with a radial basis function kernel, and a Multilayer Perceptron (MLP) neural network -- this paper proves that diabetes can be accurately diagnosed in Pima women. The results also indicate that  classification accuracy is maximized with the neural network algorithm.
+
+## 1. Introduction
+
+This paper attempts to explore the viability of the application machine learning to the medical field and human health. Can statistical learning algorithms be utilized by doctors to help make accurate diagnoses and aid in decision making as it pertains to patient health? To attempt to answer this question, we train three distinct machine learning algorithms -- Random Forest decision trees, a Support Vector Machine (SVM) with a radial basis function kernel, and a Multilayer Perceptron (MLP) neural network -- using data about diabetes occrance in Pima Indian Women. All analysis was performed with the R statistical computing software package and associated machine learning packages in the RStudio integrated development enviornment. Our results clearly indicate that all three algorithms had a high success rate in correctly diagnosing diabetes in Pima women. This lends support to the proposed hypothesis that machine learning does have a place in doctors' arsenal.
+
+
+### 1.1 About the Data
+
+The data about diabetes incidence in Pima women used in our analysis are freely avaiable from the University of California, Irvine machine learning repository at http://archive.ics.uci.edu/ml/. The dataset contains 768 observations of nine features. The features in the order they appear in the dataset are as follows:
+
+Feature Description  | Feature name in dataset
+------------- | -------------
+Number of times pregnant | timePregnant
+Plasma glucose concentration a 2 hours in an oral glucose tolerance test | plasmaGlucose
+Diastolic blood pressure (mm Hg) | diastolicPressure
+Triceps skin fold thickness (mm) | tricepThickness
+2-Hour serum insulin (mu U/ml) | serumInsulin
+Body mass index (weight in kg/(height in m)^2) | bmi
+Diabetes pedigree function | pedigreeFunction
+Age (years) | age
+Class variable (diabetic or not diabetic) | diabetes
+
+## 2. Body
+
+###  2.1 Data Aquisition
+
+
+
+We begin our analysis by loading data in 
+

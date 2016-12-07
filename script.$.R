@@ -16,6 +16,9 @@ data$diabetes <- as.factor(ifelse(data$diabetes == 0, "notDiabetic", "Diabetic")
 
 ###Dealing with missing values
 
+#Visualize missing data
+pairs(data)
+
 #Data set is not encoded with NA's
 #But there are 0's where biologocially impossible
 #This must be how NAs were encoded
