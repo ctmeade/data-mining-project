@@ -21,7 +21,7 @@ The data about diabetes incidence in Pima women used in our analysis are freely 
 Feature Description  | Feature name in dataset
 ------------- | -------------
 Number of times pregnant | timePregnant
-Plasma glucose concentration a 2 hours in an oral glucose tolerance test | plasmaGlucose
+Plasma glucose concentration at 2 hours in an oral glucose tolerance test | plasmaGlucose
 Diastolic blood pressure (mm Hg) | diastolicPressure
 Triceps skin fold thickness (mm) | tricepThickness
 2-Hour serum insulin (mu U/ml) | serumInsulin
@@ -30,11 +30,120 @@ Diabetes pedigree function | pedigreeFunction
 Age (years) | age
 Class variable (diabetic or not diabetic) | diabetes
 
-## 2. Body
+### 1.2 Software Used in Analysis
 
-###  2.1 Data Aquisition
+All analysis was performed with the R statistical computing environment. The functionality of R was extended by importing the following software libraries: `caret`, `mice`, `randomForest`, `kernlab` `VIM`, and `RSNNS`. These librarys add support for data imputation and for the three machine learning algorithms used in our analysis.
+
+The analysis was written in the RStudio integrated development enviornment. This package was generated using the `rmarkdown' R package.
+
+## 2. Data Processing
+
+### 2.1 Data Aquisition
+
+We must first import our data into R and load the required R packages used in our analysis.
+
+```{r, message=F, warning=F}
+library(caret)
+library(mice)
+library(randomForest)
+library(kernlab)
+library(RSNNS)
+library(VIM)
+
+#Create a vector of the feature names
+headers <- c("timesPregnant", "plasmaGlucose", "diastolicPressure", "tricepThickness",
+             "serumInsulin", "bmi", "pedigreeFunction", "age", "diabetes")
+
+#Import data
+www <- paste0("http://archive.ics.uci.edu/ml/machine-learning-databases/",
+              "pima-indians-diabetes/pima-indians-diabetes.data")
+
+data <- read.csv(url(www),
+                 header = FALSE,
+                 col.names = headers)
+```
+We examine the structure of our data table to ensure that it was imported correctly.
+
+```{r}
+str(data)
+```
+
+Next, we encode the class label of the `diabetes` feature to be more reable by changing `0` to `notDiabetic` and `1` to `Diabetic`. We then covert this feature to a factor.
+
+```{r}
+data$diabetes <- as.factor(ifelse(data$diabetes == 0, "notDiabetic", "Diabetic"))
+```
+
+### 2.2 Exploratory Analysis
+
+Now that we have our data and have imported all required software libraries, we perform some exploratory analysis. We begin by constructing a scatterplot matrix.
+
+```{r}
+pairs(data)
+```
+
+From this scatterplot matrix we make the following observations:
+
+1. Several features have `0` valued observation.
+  
+2. There does not appear to be strong linearity between any two features. We confirm this later in the analysis.
+  
+### 2.3 Missing Data
+
+From our exploratory analysis, we found the several features contain values of `0`. For several of the features, a `0` value is biologically impossible, namely in `plasamaGlucose`, `diastolicPressure`, `tricepThickness`, `serumInsulin`, `bmi`. We conclude that although the dataset does not explicitly contain missing values, it does contain implicity missing values encoded as `0`s.
+
+We decide to explictily encode the missing values in the five listed features as `NA`s.
+
+```{r}
+for (i in 2:6){
+  for (n in 1:nrow(data)){
+    if (data[n, i] == 0){
+      data[n, i] <- NA
+    }
+  }
+}
+```
+
+Now that missing data is correcty encoded as `NA`'s, we construct an aggregation plot to count the precise number of missing values.
+
+```{r}
+aggr(data[,2:6], cex.lab=1, cex.axis = .5, numbers = T, gap = 0)
+```
+
+The left plot shows the proportion of missing values to total observations for each feature. We note that over half of all observations for `serumInsulin` and nearly a third `tricepThickness` observations are missing.
+
+The plot on the right indicates that only little over half of the observations are complete. Due to the number of observations with missing values, we choose not to drop these observations from our analysis. Instead, we will impute missing values using a technique called Imputation by Predicted Mean matching, which "imputes missing values by means of the nearest-neighbor donor with distance based on the expected values of the missing variables conditional on the observed covariates."(1)
+
+Imputation by Predicted Mean Matching is advantagous over other methods of data imputation because it "can provide valid inference when data are missing at random." (2)
+
+This introduces an assumption: that data are at least missing at random. That is, we must be sure that our data are not Missing Not at Random (MNAR). In the case of MNAR,
+
+To test if this is a reasonable assumption, we construct a scatterplot matrix highlighting missing values.
+
+```{r}
+scattmatrixMiss(data)
+```
+We note no relationship between variables and missing values, so our assumption is valid.
 
 
+### 2.4 Feature Selection
+
+### 2.5 Data Standardization
+
+## 3. Training the algorithms
+
+### 3.1 Predicting the most common label
+
+Base accuracy etc
 
 We begin our analysis by loading data in 
 
+
+
+
+
+
+
+##References
+(1) http://www.stefvanbuuren.nl/publications/2014%20Semicontinuous%20-%20Stat%20Neerl.pdf
+(2) http://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-75
