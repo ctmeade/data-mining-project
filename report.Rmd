@@ -123,27 +123,119 @@ To test if this is a reasonable assumption, we construct a scatterplot matrix hi
 ```{r}
 scattmatrixMiss(data)
 ```
-We note no relationship between variables and missing values, so our assumption is valid.
 
+We note no relationship between variables and missing values, so our assumption is valid. We proceed with the Imputation by Predictive Mean Matching.
+
+```{r, message = F, warning=F}
+tempdata <- mice(data, m = 3, method = 'pmm', seed = 100)
+data <- complete(tempdata)
+```
+
+We examine the distributions of our imputed data (red) compared to the original data (blue).
+
+```{r}
+densityplot(tempdata)
+```
+
+The distributions are approximately equal, so we may proceed to feature selection.
 
 ### 2.4 Feature Selection
 
+We ensure that no two features are too highly correlated by constructing a scatterplot matrix. If any two features have a correlation coefficient greater than `0.7`, we will consider removing one of them.
+
+```{r}
+correlationMatrix <- cor(data[,1:8])
+findCorrelation(correlationMatrix, cutoff=0.7)
+```
+
+This is not necessary, though, as no two features are that highly correlated. Consequently, we choose not to eliminate any features from our analysis.
+
 ### 2.5 Data Standardization
 
-## 3. Training the algorithms
+Since the features of the dataset represent different units, we choose to standardize the data but making the mean of each column `0` with a standard deviation of `1`.
+
+This is accomplished with a very simple algorithm:
+
+Replace each observation of a random variable with the output of the following function: $$f(x_i)=\dfrac{x_i-mean(X)}{sd(X)}$$Repeat for each random variable.
+
+This standardization is easily performed with R.
+
+```{r}
+data[, 1:8] <- scale(data[, 1:8], center = TRUE, scale = TRUE)
+```
+
+## 3. Training the Algorithms
+
+With our exploratory analysis and data processing complete, we being our analysis. Models for each of our three methods will be constructed from a training set of observations using 10-fold cross validation to prevent overfitting. This is easily implemented using the `caret` package.
+
+```{r}
+tenFoldCV <- trainControl(method = "repeatedcv",
+                          number = 10,
+                          repeats = 10,
+                          classProbs=TRUE,
+                          summaryFunction=twoClassSummary)
+```
+
+The best model for each of the three methods will then be selected by its area under the ROC curve. This score, $x\in [0,1]$, represents model accuracy. A score close to $1$ indicates high accuracy.
 
 ### 3.1 Predicting the most common label
 
-Base accuracy etc
+Of the 768 observations, about 65% have class label 'notDiabetic' and the remaining 35% have class label 'Diabetic'. So by predicting 'notDiabetic' for every class, one will already be 65% accurate. Thus any model must have an accuracy greater than 65% to be viable.
 
-We begin our analysis by loading data in 
+### 3.2 Training and Test Sets
 
+We use 70% of the observations to train the models and reserve the remaining 30% to test performance.
 
+```{r}
+sampleSize <- floor(.7 * nrow(data))
 
+set.seed(131)
+trainIndices <- sample(seq_len(nrow(data)), size = sampleSize)
 
+x.train <- data[trainIndices, 1:8]
+y.train <- data[trainIndices, 9]
 
+x.test <- data[-trainIndices, 1:8]
+y.test <- data[-trainIndices, 9]
+```
+
+### 3.3 Random Forest
+
+This algorithm presents a tree-based classification method. It is unique from other tree-based methods because whenever a split in the tree is considered, the algorithm may only use a random subset of predictor variables as split candidates. Then only one predictor in the random subset is used in the split.(3)
+
+We train the model with the following function, which creates cross-validated models for each different possible size, called `mtry`, of the random sample. We exlude the possibility of `mtry = 1` to prevent overfitting the data.
+
+```{r}
+rf.expand <- expand.grid(mtry = 2:8)
+
+set.seed(100)
+rf <- caret::train(x.train,
+                   y.train,
+                   method = "rf",
+                   metric = "ROC",
+                   trControl = tenFoldCV,
+                   tuneGrid = rf.expand)
+
+rf
+```
+
+The function trained several different models with seven different possible random subset sizes. The highest area under the ROC curve, `0.8247820`, was achieved when only 2 randomly chosed predictors were considered.
+
+Next, we examine the importance of all the variables.
+
+```{r}
+varImpPlot(rf$finalModel, type = 2, main = "Random Forest")
+```
+
+The plot lists the importance of any given variable to the the model, with the most important variable at the top and least important variable at the bottom.(4) Since there is only a single jump after `plasmaGlucose`, all variable appear to be significant to the model. We conclude that it is not necessary to eliminate variables and retrain the model.
+
+Thus the random forest with `mtry = 2` from above is chosen as our final model.
+
+### 3.4 Support Vector Machine
 
 
 ##References
 (1) http://www.stefvanbuuren.nl/publications/2014%20Semicontinuous%20-%20Stat%20Neerl.pdf
 (2) http://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-75
+(3) Introduction to Statistical Learning
+(4) https://dinsdalelab.sdsu.edu/metag.stats/code/randomforest.html
