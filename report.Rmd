@@ -1,22 +1,27 @@
 ---
-title: "Project"
+title: "Diagnosing Diabetes with Machine Learning"
 author: "Chris Meade"
 date: "12/7/2016"
+toc: true
 output: pdf_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
 ### Abstract
 
-Diabetes occurs more often in the Pima Indian tribe of southern Arizona than any other population of people in the world. By selecting the optimal parameters for three machine learning algorithms -- Random Forest decision trees, a Support Vector Machine (SVM) with a radial basis function kernel, and a Multilayer Perceptron (MLP) neural network -- this paper proves that diabetes can be accurately diagnosed in Pima women. The results also indicate that  classification accuracy is maximized with the neural network algorithm.
+Diabetes occurs more often in the Pima Indian tribe of southern Arizona than any other population of people in the world.(1) By selecting the optimal parameters for three machine learning algorithms -- Random Forest decision trees, a Support Vector Machine (SVM), and a Multilayer Perceptron (MLP) artifical neural network (ANN) -- this paper proves that diabetes can be accurately diagnosed in Pima women. These results indicate that machine learning can be a valuable tool for doctors to help with the diagnosis of diseases.
 
 ## 1. Introduction
 
-This paper attempts to explore the viability of the application machine learning to the medical field and human health. Can statistical learning algorithms be utilized by doctors to help make accurate diagnoses and aid in decision making as it pertains to patient health? To attempt to answer this question, we train three distinct machine learning algorithms -- Random Forest decision trees, a Support Vector Machine (SVM) with a radial basis function kernel, and a Multilayer Perceptron (MLP) neural network -- using data about diabetes occrance in Pima Indian Women. All analysis was performed with the R statistical computing software package and associated machine learning packages in the RStudio integrated development enviornment. Our results clearly indicate that all three algorithms had a high success rate in correctly diagnosing diabetes in Pima women. This lends support to the proposed hypothesis that machine learning does have a place in doctors' arsenal.
+This paper explores the viability of the application machine learning to the domain of medicine. Can statistical learning algorithms be utilized by doctors to help make accurate diagnoses and aid in decision making as it pertains to patient health? To attempt to answer this question, we train three distinct machine learning algorithms -- Random Forest decision trees, a Support Vector Machine (SVM), and a Multilayer Perceptron (MLP) artificial neural network -- using data about diabetes occurances in Pima Indian Women. All analysis was performed with the R statistical computing software package and associated machine learning libraries in the RStudio integrated development enviornment. Our results clearly indicate that all three algorithms had a high success rate in correctly diagnosing diabetes in Pima women. This lends support to the proposed hypothesis that machine learning does have a place in doctors' arsenal.
 
 
 ### 1.1 About the Data
 
-The data about diabetes incidence in Pima women used in our analysis are freely avaiable from the University of California, Irvine machine learning repository at http://archive.ics.uci.edu/ml/. The dataset contains 768 observations of nine features. The features in the order they appear in the dataset are as follows:
+The data about diabetes incidence in Pima women used in our analysis are freely avaiable from the University of California, Irvine Machine Learning Repository at http://archive.ics.uci.edu/ml/. This dataset was created to try to predict the onset of diabetes in women belonging to the Pima Indian Tribe. This dataset contains 768 observations of nine features. The features in the order they appear in the dataset are as follows:
 
 Feature Description  | Feature name in dataset
 ------------- | -------------
@@ -30,11 +35,17 @@ Diabetes pedigree function | pedigreeFunction
 Age (years) | age
 Class variable (diabetic or not diabetic) | diabetes
 
+A full description of this dataset is available at: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2245318/
+
 ### 1.2 Software Used in Analysis
 
 All analysis was performed with the R statistical computing environment. The functionality of R was extended by importing the following software libraries: `caret`, `mice`, `randomForest`, `kernlab` `VIM`, and `RSNNS`. These librarys add support for data imputation and for the three machine learning algorithms used in our analysis.
 
-The analysis was written in the RStudio integrated development enviornment. This package was generated using the `rmarkdown' R package.
+The analysis was written in the RStudio integrated development enviornment. This report was generated using the `rmarkdown` R package.
+
+### 1.3 Outline of Analysis
+
+We begin by loading data into R and conducting some exploratory analysis. We then impute missing values. Next, the data is standardized and split into a training and test set. Afterwards, we begin constructing models and optimizing paramters. Finally, we assess the classification accuracy of our three final models on the test set to choose the best one.
 
 ## 2. Data Processing
 
@@ -62,13 +73,14 @@ data <- read.csv(url(www),
                  header = FALSE,
                  col.names = headers)
 ```
+
 We examine the structure of our data table to ensure that it was imported correctly.
 
 ```{r}
 str(data)
 ```
 
-Next, we encode the class label of the `diabetes` feature to be more reable by changing `0` to `notDiabetic` and `1` to `Diabetic`. We then covert this feature to a factor.
+Everything appear to be in order, so next we encode the class label of the `diabetes` feature to be more reable by changing `0` to `notDiabetic` and `1` to `Diabetic`. We then covert this feature to a factor.
 
 ```{r}
 data$diabetes <- as.factor(ifelse(data$diabetes == 0, "notDiabetic", "Diabetic"))
@@ -76,21 +88,18 @@ data$diabetes <- as.factor(ifelse(data$diabetes == 0, "notDiabetic", "Diabetic")
 
 ### 2.2 Exploratory Analysis
 
-Now that we have our data and have imported all required software libraries, we perform some exploratory analysis. We begin by constructing a scatterplot matrix.
+Now that we have loaded our data and have imported all required software libraries, we perform some exploratory analysis. We begin by constructing a scatterplot matrix.
 
 ```{r}
 pairs(data)
 ```
 
-From this scatterplot matrix we make the following observations:
+From this scatterplot matrix we observe that several features have `0` valued observation.
 
-1. Several features have `0` valued observation.
-  
-2. There does not appear to be strong linearity between any two features. We confirm this later in the analysis.
   
 ### 2.3 Missing Data
 
-From our exploratory analysis, we found the several features contain values of `0`. For several of the features, a `0` value is biologically impossible, namely in `plasamaGlucose`, `diastolicPressure`, `tricepThickness`, `serumInsulin`, `bmi`. We conclude that although the dataset does not explicitly contain missing values, it does contain implicity missing values encoded as `0`s.
+From our exploratory analysis, we found that several features contain `0` valued observations. For several of the features, a `0` value is biologically impossible, namely in `plasamaGlucose`, `diastolicPressure`, `tricepThickness`, `serumInsulin`, `bmi`. We conclude that although the dataset does not explicitly contain missing values, it does contain implicity missing values encoded as `0`s.
 
 We decide to explictily encode the missing values in the five listed features as `NA`s.
 
@@ -104,7 +113,7 @@ for (i in 2:6){
 }
 ```
 
-Now that missing data is correcty encoded as `NA`'s, we construct an aggregation plot to count the precise number of missing values.
+Now that missing data is correcty encoded as `NA`s, we construct an aggregation plot to count the precise number of missing values.
 
 ```{r}
 aggr(data[,2:6], cex.lab=1, cex.axis = .5, numbers = T, gap = 0)
@@ -112,11 +121,11 @@ aggr(data[,2:6], cex.lab=1, cex.axis = .5, numbers = T, gap = 0)
 
 The left plot shows the proportion of missing values to total observations for each feature. We note that over half of all observations for `serumInsulin` and nearly a third `tricepThickness` observations are missing.
 
-The plot on the right indicates that only little over half of the observations are complete. Due to the number of observations with missing values, we choose not to drop these observations from our analysis. Instead, we will impute missing values using a technique called Imputation by Predicted Mean matching, which "imputes missing values by means of the nearest-neighbor donor with distance based on the expected values of the missing variables conditional on the observed covariates."(1)
+The plot on the right indicates that only a little over half of the observations are complete. Due to the number of observations with missing values, we choose not to drop these observations from our analysis. Instead, we will impute missing values using a technique called Imputation by Predicted Mean matching, which "imputes missing values by means of the nearest-neighbor donor with distance based on the expected values of the missing variables conditional on the observed covariates."(2)
 
-Imputation by Predicted Mean Matching is advantagous over other methods of data imputation because it "can provide valid inference when data are missing at random." (2)
+Imputation by Predicted Mean Matching is advantagous over other methods of data imputation because it "can provide valid inference when data are missing at random." (3)
 
-This introduces an assumption: that data are at least missing at random. That is, we must be sure that our data are not Missing Not at Random (MNAR). In the case of MNAR,
+This introduces an assumption: that data are at least missing at random. That is, we must be sure that our data are not Missing Not at Random (MNAR).
 
 To test if this is a reasonable assumption, we construct a scatterplot matrix highlighting missing values.
 
@@ -124,7 +133,7 @@ To test if this is a reasonable assumption, we construct a scatterplot matrix hi
 scattmatrixMiss(data)
 ```
 
-We note no relationship between variables and missing values, so our assumption is valid. We proceed with the Imputation by Predictive Mean Matching.
+We note no discernible relationship between variables and missing values, so our assumption is valid. We proceed with the Imputation by Predictive Mean Matching.
 
 ```{r, message = F, warning=F}
 tempdata <- mice(data, m = 3, method = 'pmm', seed = 100)
@@ -141,7 +150,7 @@ The distributions are approximately equal, so we may proceed to feature selectio
 
 ### 2.4 Feature Selection
 
-We ensure that no two features are too highly correlated by constructing a scatterplot matrix. If any two features have a correlation coefficient greater than `0.7`, we will consider removing one of them.
+We ensure that no two features are too highly correlated by constructing a correlation matrix. If any two features have a correlation coefficient greater than `0.7`, we will consider removing one of them.
 
 ```{r}
 correlationMatrix <- cor(data[,1:8])
@@ -156,7 +165,7 @@ Since the features of the dataset represent different units, we choose to standa
 
 This is accomplished with a very simple algorithm:
 
-Replace each observation of a random variable with the output of the following function: $$f(x_i)=\dfrac{x_i-mean(X)}{sd(X)}$$Repeat for each random variable.
+Replace each observation of a random variable with the output of the following function: $$f(x_i)=\dfrac{x_i-mean(X)}{sd(X)}$$Then repeat for each random variable.
 
 This standardization is easily performed with R.
 
@@ -166,7 +175,7 @@ data[, 1:8] <- scale(data[, 1:8], center = TRUE, scale = TRUE)
 
 ## 3. Training the Algorithms
 
-With our exploratory analysis and data processing complete, we being our analysis. Models for each of our three methods will be constructed from a training set of observations using 10-fold cross validation to prevent overfitting. This is easily implemented using the `caret` package.
+With our exploratory analysis and data processing complete, we begin building models. Models for each of our three methods will be constructed from a training set of observations using 10-fold cross validation to prevent overfitting. This is easily implemented using the `caret` package.
 
 ```{r}
 tenFoldCV <- trainControl(method = "repeatedcv",
@@ -201,9 +210,9 @@ y.test <- data[-trainIndices, 9]
 
 ### 3.3 Random Forest
 
-This algorithm presents a tree-based classification method. It is unique from other tree-based methods because whenever a split in the tree is considered, the algorithm may only use a random subset of predictor variables as split candidates. Then only one predictor in the random subset is used in the split.(3)
+This algorithm presents a tree-based classification method. It is unique from other tree-based methods because whenever a split in the tree is considered, the algorithm may only use a random subset of predictor variables as split candidates. Then only one predictor in the random subset is used in the split.(4)
 
-We train the model with the following function, which creates cross-validated models for each different possible size, called `mtry`, of the random sample. We exlude the possibility of `mtry = 1` to prevent overfitting the data.
+We train the model with the following function, which creates cross-validated models for each different possible size, called `mtry`, of the random sample. We exclude the possibility of `mtry = 1` to prevent overfitting the data.
 
 ```{r}
 rf.expand <- expand.grid(mtry = 2:8)
@@ -219,7 +228,7 @@ rf <- caret::train(x.train,
 rf
 ```
 
-The function trained several different models with seven different possible random subset sizes. The highest area under the ROC curve, `0.8247820`, was achieved when only 2 randomly chosed predictors were considered.
+The function trained several different models with seven different possible random subset sizes. The highest area under the ROC curve was achieved when only 2 randomly chosed predictors were considered.
 
 Next, we examine the importance of all the variables.
 
@@ -227,15 +236,139 @@ Next, we examine the importance of all the variables.
 varImpPlot(rf$finalModel, type = 2, main = "Random Forest")
 ```
 
-The plot lists the importance of any given variable to the the model, with the most important variable at the top and least important variable at the bottom.(4) Since there is only a single jump after `plasmaGlucose`, all variable appear to be significant to the model. We conclude that it is not necessary to eliminate variables and retrain the model.
+The plot lists the importance of any given variable to the the model, with the most important variable at the top and least important variable at the bottom.(5) Since there is only a single jump after `plasmaGlucose`, all variables appear to be significant to the model. We conclude that it is not necessary to eliminate variables or retrain the model.
 
 Thus the random forest with `mtry = 2` from above is chosen as our final model.
 
 ### 3.4 Support Vector Machine
 
+The Support Vector Machine, generally speaking, is a classifcation method that attempts to linearly separate observations based on class label. This dataset was not linearly separable, so we use a function kernel to tranform our data into a higher dimensional feature space where it is more easily separable by a hyperplane.
 
-##References
-(1) http://www.stefvanbuuren.nl/publications/2014%20Semicontinuous%20-%20Stat%20Neerl.pdf
-(2) http://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-75
-(3) Introduction to Statistical Learning
-(4) https://dinsdalelab.sdsu.edu/metag.stats/code/randomforest.html
+Several such transformations exist, but for brevity we choose to compare only two prominent ones -- a linear kernel and a radial basis funtion kernel.
+
+We begin by training the SVM using a linear kernel and 10-fold cross validation.
+
+```{r}
+linear.svm.expand <- expand.grid(C = c(.1, 1, 10))
+set.seed(131)
+linear.svm <- caret::train(x.train,
+                           y.train,
+                           method = "svmLinear",
+                           metric = "ROC",
+                           trControl = tenFoldCV,
+                           tuneLength = 10,
+                           tuneGrid = linear.svm.expand)
+linear.svm
+```
+
+The Linear Kernel Support Vector Machine has a single parameter, cost, denoted `C`. We first broadly try to find the optimal value of `C` by training models for `C = .1, 1, and 10`. After finding that `C = .1` produces the best model, we narrow in our search.
+
+```{r}
+linear.svm.expand2 <- expand.grid(C = c(.05, .1, .15))
+set.seed(131)
+linear.svm2 <- caret::train(x.train,
+                            y.train,
+                            method = "svmLinear",
+                            metric = "ROC",
+                            trControl = tenFoldCV,
+                            tuneGrid = linear.svm.expand2)
+linear.svm2
+```
+
+Area under the ROC curve was maximized by the model with `C = 0.05`. We will now construct a SVM with a radial basis function kernel to compare results. This model introduces a new parameter, sigma, which controls model slack. Just as before, we begin by broadly narrowing in optimal parameter values.
+
+```{r}
+radial.svm.expand <- expand.grid(sigma = c(.2, .4, .6, .8),
+                                 C = c(.1, 1, 5, 10, 100))
+set.seed(131)
+radial.svm <- caret::train(x.train,
+                           y.train,
+                           method = "svmRadial",
+                           metric = "ROC",
+                           trControl = tenFoldCV,
+                           tuneGrid = radial.svm.expand)
+
+radial.svm
+```
+
+We now narrow our search grid to values in the neighborhoods of `sigma = 0.2` and `C = .1` and construct more models.
+
+```{r}
+radial.svm.expand2 <- expand.grid(sigma = c(.15, .2, .25),
+                                 C = c(.01, .05, .1, .15, .25))
+set.seed(131)
+radial.svm2 <- caret::train(x.train,
+                            y.train,
+                            method = "svmRadial",
+                            metric = "ROC",
+                            trControl = tenFoldCV,
+                            tuneGrid = radial.svm.expand2)
+
+radial.svm2
+```
+
+So the final SVM model using the radial bias function kernel achieves a maximal area under the ROC curve value when `sigma = .15` and `C = 0.01`. Since this AUC is clearly below the AUC achieved with the linear kernel, we choose the SVM with the linear kernel transformation and `C = 0.05` as our final Support Vector Machine model.
+
+### 3.5 Multilayer Perceptron Artifical Neural Network
+
+This type of model works by feeding information through a series of layers, each consisting of artificial neurons which weight the inputs and allow the model to come to a final conclusion. Training begins at input layer. Then information is passed in to a given number of hidden layers. The number of hidden layers is the model parameter we will optimize. Finally, an output layer relays the final decision about an observation's class label.(6)
+
+```{r}
+set.seed(131)
+mlpnn <- caret::train(x.train,
+                      y.train,
+                      method = "mlpML",
+                      metric= "ROC",
+                      trControl=tenFoldCV)
+
+mlpnn
+```
+
+Performance is maximized with one hidden layer, so we choose this one as our final model for this method.
+
+## Selecting the Best Overall Model
+
+We now have three final models, one for each method. Of these three, the model will the highest classification accuracy on our test set will be selected as the best model for this problem.
+
+```{r}
+#RF Test accuracy
+rf.predict <- predict(rf$finalModel, x.test)
+rf.test.accuracy <- mean(rf.predict == y.test)
+rf.test.accuracy
+
+#SVM Test accuracy
+svm.predict <- predict(linear.svm2$finalModel, x.test)
+svm.test.accuracy <- mean(svm.predict == y.test)
+svm.test.accuracy
+
+#MLPNN Test Accuracy
+mlpnn.predict <- predict(mlpnn$finalModel, x.test)
+mlpnn.predict <- as.data.frame(mlpnn.predict)
+mlpnn.predict$prediction <- ifelse(mlpnn.predict$V1 >= .5, "Diabetic", "notDiabetic")
+mlpnn.test.accuracy <- mean(mlpnn.predict$prediction == y.test)
+mlpnn.test.accuracy
+```
+
+The MLP artificial neural network achieves the greatest classification accuracy, so we choose it as the best model.
+
+## Conclusion
+
+With a very small and incomplete training set, data mining proved to be a viable method for diabetes diagnosis in Pima Indian women. Of the three algorithms tested, all performed better than the minimum viable accuracy rate. The multilayer perceptron artificial neural network algorithm performed best of all, and was consequently chosen as the best model for this problem. We believe that performance could be further improved with the availability of more data. This data would also ideally be free of missing values. Despite these hinderances, machine learning proved itself to be a valuable contribution to the medical industry.
+
+## References
+(1) http://diabetes.diabetesjournals.org/content/53/5/1181
+(2) http://www.stefvanbuuren.nl/publications/2014%20Semicontinuous%20-%20Stat%20Neerl.pdf
+(3) http://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-75
+(4) James et al., Introduction to Statistical Learning
+(5) https://dinsdalelab.sdsu.edu/metag.stats/code/randomforest.html
+(6) http://www.doc.ic.ac.uk/~sgc/teaching/pre2012/v231/lecture13.html
+
+Software:
+https://www.r-project.org/
+https://www.rstudio.com
+https://cran.r-project.org/web/packages/caret/index.html
+https://cran.r-project.org/web/packages/mice/mice.pdf
+https://cran.r-project.org/web/packages/randomForest/randomForest.pdf
+https://cran.r-project.org/web/packages/kernlab/kernlab.pdf
+https://cran.r-project.org/web/packages/RSNNS/RSNNS.pdf
+https://cran.r-project.org/web/packages/VIM/index.html
