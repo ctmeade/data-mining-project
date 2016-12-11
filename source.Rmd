@@ -10,7 +10,7 @@ output: pdf_document
 knitr::opts_chunk$set(cache=TRUE)
 ```
 
-### Abstract
+### 0. Abstract
 
 Diabetes occurs more often in the Pima Indian tribe of southern Arizona than any other population of people in the world.(1) By selecting the optimal parameters for three machine learning algorithms -- Random Forest decision trees, a Support Vector Machine (SVM), and a Multilayer Perceptron (MLP) artifical neural network (ANN) -- this paper proves that diabetes can be accurately diagnosed in Pima women. These results indicate that machine learning can be a valuable tool for doctors to help with the diagnosis of diseases.
 
@@ -39,9 +39,9 @@ A full description of this dataset is available at: https://www.ncbi.nlm.nih.gov
 
 ### 1.2 Software Used in Analysis
 
-All analysis was performed with the R statistical computing environment. The functionality of R was extended by importing the following software libraries: `caret`, `mice`, `randomForest`, `kernlab` `VIM`, and `RSNNS`. These librarys add support for data imputation and for the three machine learning algorithms used in our analysis.
+All analysis was performed with the R statistical computing environment. The functionality of R was extended by importing the following software libraries: `caret`, `mice`, `randomForest`, `kernlab` `VIM`, and `RSNNS`. These libraries add support for data imputation and for the three machine learning algorithms used in our analysis.
 
-The analysis was written in the RStudio integrated development enviornment. This report was generated using the `rmarkdown` R package.
+The analysis was written in the RStudio integrated development enviornment. This report was generated using the `rmarkdown` library.
 
 ### 1.3 Outline of Analysis
 
@@ -99,7 +99,7 @@ From this scatterplot matrix we observe that several features have `0` valued ob
   
 ### 2.3 Missing Data
 
-From our exploratory analysis, we found that several features contain `0` valued observations. For several of the features, a `0` value is biologically impossible, namely in `plasamaGlucose`, `diastolicPressure`, `tricepThickness`, `serumInsulin`, `bmi`. We conclude that although the dataset does not explicitly contain missing values, it does contain implicity missing values encoded as `0`s.
+From our exploratory analysis, we found that several features contain `0` valued observations. For several of the features, a `0` value is biologically impossible, namely in `plasamaGlucose`, `diastolicPressure`, `tricepThickness`, `serumInsulin`, `bmi`. We conclude that although the dataset does not explicitly contain missing values, it does implicitly contain missing values encoded as `0`s.
 
 We decide to explictily encode the missing values in the five listed features as `NA`s.
 
@@ -123,7 +123,7 @@ The left plot shows the proportion of missing values to total observations for e
 
 The plot on the right indicates that only a little over half of the observations are complete. Due to the number of observations with missing values, we choose not to drop these observations from our analysis. Instead, we will impute missing values using a technique called Imputation by Predicted Mean matching, which "imputes missing values by means of the nearest-neighbor donor with distance based on the expected values of the missing variables conditional on the observed covariates."(2)
 
-Imputation by Predicted Mean Matching is advantagous over other methods of data imputation because it "can provide valid inference when data are missing at random." (3)
+Imputation by Predicted Mean Matching is advantageous over other methods of data imputation because it "can provide valid inference when data are missing at random." (3)
 
 This introduces an assumption: that data are at least missing at random. That is, we must be sure that our data are not Missing Not at Random (MNAR).
 
@@ -326,7 +326,7 @@ mlpnn
 
 Performance is maximized with one hidden layer, so we choose this one as our final model for this method.
 
-## Selecting the Best Overall Model
+## 4. Selecting the Best Overall Model
 
 We now have three final models, one for each method. Of these three, the model will the highest classification accuracy on our test set will be selected as the best model for this problem.
 
@@ -349,13 +349,13 @@ mlpnn.test.accuracy <- mean(mlpnn.predict$prediction == y.test)
 mlpnn.test.accuracy
 ```
 
-The MLP artificial neural network achieves the greatest classification accuracy, so we choose it as the best model.
+The Random Forest achieves the greatest classification accuracy, so we choose it as the best model.
 
-## Conclusion
+## 5. Conclusion
 
-With a very small and incomplete training set, data mining proved to be a viable method for diabetes diagnosis in Pima Indian women. Of the three algorithms tested, all performed better than the minimum viable accuracy rate. The multilayer perceptron artificial neural network algorithm performed best of all, and was consequently chosen as the best model for this problem. We believe that performance could be further improved with the availability of more data. This data would also ideally be free of missing values. Despite these hinderances, machine learning proved itself to be a valuable contribution to the medical industry.
+With a very small and incomplete training set, data mining proved to be a viable method for diabetes diagnosis in Pima Indian women. Of the three algorithms tested, all performed better than the minimum viable accuracy rate. The Random Forest algorithm performed best of all, and was consequently chosen as the best model for this problem. We believe that performance could be further improved with the availability of more data. This data would also ideally be free of missing values. Despite these hinderances, machine learning proved itself to be a valuable contribution to the medical industry.
 
-## References
+## 6. References
 (1) http://diabetes.diabetesjournals.org/content/53/5/1181
 (2) http://www.stefvanbuuren.nl/publications/2014%20Semicontinuous%20-%20Stat%20Neerl.pdf
 (3) http://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-75
@@ -364,11 +364,11 @@ With a very small and incomplete training set, data mining proved to be a viable
 (6) http://www.doc.ic.ac.uk/~sgc/teaching/pre2012/v231/lecture13.html
 
 Software:
-https://www.r-project.org/
-https://www.rstudio.com
-https://cran.r-project.org/web/packages/caret/index.html
-https://cran.r-project.org/web/packages/mice/mice.pdf
-https://cran.r-project.org/web/packages/randomForest/randomForest.pdf
-https://cran.r-project.org/web/packages/kernlab/kernlab.pdf
-https://cran.r-project.org/web/packages/RSNNS/RSNNS.pdf
-https://cran.r-project.org/web/packages/VIM/index.html
+* https://www.r-project.org/
+* https://www.rstudio.com
+* https://cran.r-project.org/web/packages/caret/index.html
+* https://cran.r-project.org/web/packages/mice/mice.pdf
+* https://cran.r-project.org/web/packages/randomForest/randomForest.pdf
+* https://cran.r-project.org/web/packages/kernlab/kernlab.pdf
+* https://cran.r-project.org/web/packages/RSNNS/RSNNS.pdf
+* https://cran.r-project.org/web/packages/VIM/index.html
